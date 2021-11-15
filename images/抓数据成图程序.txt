@@ -1,0 +1,123 @@
+# coding=utf-8
+import time
+
+import pymysql
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import pylab
+from pylab import *
+import xlrd
+import os
+print('正在连接监测数据库，请稍后…………')
+os.system("")
+plt.rcParams['font.sans-serif']=['SimHei']
+plt.rcParams['axes.unicode_minus']=False
+#连接mysql数据库……
+time.sleep(2)
+dblink= pymysql.connect(host='hellopsm.mysql.rds.aliyuncs.com', user='gowo',passwd='PSMpsm0742053049', db='Craw', charset='utf8')
+lis=['地研院_水井湾gnss_01_data','地研院_水井湾gnss_02_data','地研院_水井湾gnss_03_data','地研院_水井湾gnss_04_data','地研院_水井湾gnss_05_data','地研院_水井湾gnss_06_data',
+'地研院_基坑gnss_data','地研院_航油管道滑坡gnss_data','地研院_武隆效果监测gnss_01_data','地研院_武隆效果监测gnss_02_data'
+     ,'地研院_武隆效果监测gnss_03_data','地研院_武隆效果监测gnss_04_data']
+print('数据库连接成功，请按下列提示输入您想查看的监测点！')
+time.sleep(2)
+print('\033[1;31m                 输入提示\033[0m')
+print("\033[32m  查看 武隆区水井湾滑坡GNSS-01 监测点数据请输入:1\n"
+      "  查看 武隆区水井湾滑坡GNSS-02 监测点数据请输入:2\n"
+      "  查看 武隆区水井湾滑坡GNSS-03 监测点数据请输入:3\n"
+      "  查看 武隆区水井湾滑坡GNSS-04 监测点数据请输入:4\n"
+      "  查看 武隆区水井湾滑坡GNSS-05 监测点数据请输入:5\n"
+      "  查看 武隆区水井湾滑坡GNSS-06 监测点数据请输入:6\n"
+      "  查看 地研院基坑内GNSS测试点  监测点数据请输入:jk\n"
+      "  查看 渝北区航油管道滑坡GNSS  监测点数据请输入:hygd\n"
+      "  查看 武隆区效果监测GNSS-01  监测点数据请输入:xg1\n"
+      "  查看 武隆区效果监测GNSS-02  监测点数据请输入:xg2\n"
+      "  查看 武隆区效果监测GNSS-03  监测点数据请输入:xg3\n"
+      "  查看 武隆区效果监测GNSS-04  监测点数据请输入:xg4\n"
+      "\033[0m")
+for a in range(100):
+    a+=1
+    if a==1:
+        SJK_name=input("请输入：")
+    else:
+        SJK_name = input("请继续输入：")
+    if SJK_name=='1':
+        SJK_name=str(lis[0])
+    if SJK_name == '2':
+        SJK_name = lis[1]
+    if SJK_name=='3':
+        SJK_name=lis[2]
+    if SJK_name=='4':
+        SJK_name=lis[3]
+    if SJK_name=='5':
+        SJK_name=lis[4]
+    if SJK_name=='6':
+        SJK_name=lis[5]
+    if SJK_name=='jk':
+        SJK_name=lis[6]
+    if SJK_name=='hygd':
+        SJK_name=lis[7]
+    if SJK_name=='xg1':
+        SJK_name=lis[8]
+    if SJK_name=='xg2':
+        SJK_name=lis[9]
+    if SJK_name=='xg3':
+        SJK_name=lis[10]
+    if SJK_name=='xg4':
+        SJK_name=lis[11]
+    canshu="SELECT * FROM %s" % SJK_name
+    with dblink:
+        cur = dblink.cursor()
+        cur.execute(canshu)   #此处只需更换数据库表格内容即可
+        rows = cur.fetchall()
+    #定义不同颜色……
+    # def random_color(number):
+    #     color = []
+    #     intnum = [str(x) for x in np.arange(10)]
+    #     # Out[138]: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    #     alphabet = [chr(x) for x in (np.arange(6) + ord('A'))]
+    #     # Out[139]: ['A', 'B', 'C', 'D', 'E', 'F']
+    #     colorArr = np.hstack((intnum, alphabet))
+    #     # Out[142]: array(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C','D', 'E', 'F'], dtype='<U1')
+    #     for j in range(number):
+    #         color_single = '#'
+    #         for k in range(6):
+    #             index = np.random.randint(len(colorArr))
+    #             color_single += colorArr[index]
+    #         # Out[148]: '#EDAB33'
+    #         color.append(color_single)
+    #     return color
+    #     del color, intnum, alphabet, colorArr, j, i, color_single, index, number
+    #遍历数据库表格内容……
+    x=[];y=[];t1="";t2="";n=0;i=0;Zjcunchu=[]
+    for row in rows:
+        Zjcunchu.append(row[2])
+    for row in rows:
+        if Zjcunchu.count(Zjcunchu[n])==3:
+            n+=1
+            if row[0]=="de":
+                x.append(float(row[1]))
+            if row[0]=='dn':
+                y.append(float(row[1]))
+        else:n+=1
+    if SJK_name=='地研院_基坑gnss_data':  #  有基坑测试的时候才用这个程序
+        x_1=x_2=x_3=x_4=[];y_1=y_2=y_3=y_4=[]
+        x_1=x[0:x.index(-2305.695313)];y_1=y[0:x.index(-2305.695313)]
+        x_2=x[x.index(-2305.695313):x.index(-2298.601)];y_2=y[x.index(-2305.695313):x.index(-2298.601)]
+        x_3=x[x.index(-2298.601):y.index(385.4003)];y_3=y[x.index(-2298.601):y.index(385.4003)]
+        x_4=x[y.index(385.4003):len(x)];y_4=y[y.index(385.4003):len(x)]
+        plt.scatter(x_1,y_1,3,'red')
+        plt.scatter(x_2, y_2, 3, 'black')
+        plt.scatter(x_3,y_3,3,'blue')
+        plt.scatter(x_4, y_4, 3, 'green')
+        plt.title("%s监测点云图\n时间段：%s——%s" % (SJK_name, rows[0][2], row[2]), fontsize=13)
+        plt.xlabel('东向')
+        plt.ylabel("北向")
+        plt.show()
+    if SJK_name!='地研院_基坑gnss_data':  #  无基坑测试的时候才用这个程序
+        plt.scatter(x, y, 3, 'red')
+        if SJK_name!='地研院_航油管道滑坡gnss_data' and SJK_name!='地研院_基坑gnss_data':
+            plt.scatter(0,0,20,'black')
+        plt.title("%s监测点云图\n时间段：%s——%s"%(SJK_name,rows[0][2],row[2]),fontsize=13)
+        plt.xlabel('东向')
+        plt.ylabel("北向")
+        plt.show()
