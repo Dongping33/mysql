@@ -1,0 +1,439 @@
+import time
+from datetime import timezone
+import dateutil.parser
+import pymysql
+import requests
+import schedule as schedule
+
+
+USERNAME = "yanshi"
+PASSWORD = "123456"
+_METHOD = "GET"
+_ApplicationId = "rLF3cmHizI"
+_ClientVersion = "js2.7.1"
+_InstallationId = "a001860c-e8b8-7316-8a4a-a4a920627b75"
+PATHDICT_JK = {"de":"xzcqhqLylv/upData/De", "du":"xzcqhqLylv/upData/Du",
+            "dn":"xzcqhqLylv/upData/Dn"}
+PATHDICT_HYGD = {"de":"5WK8PeRCoL/upData/De", "du":"5WK8PeRCoL/upData/Du",
+            "dn":"5WK8PeRCoL/upData/Dn"}
+PATHDICT_XG_GN_01 = {"de": "x0Qz9AypTu/upData/De", "du": "x0Qz9AypTu/upData/Du",
+                  "dn": "x0Qz9AypTu/upData/Dn"}
+PATHDICT_XG_GN_02 = {"de": "jC3H18QKDd/upData/De", "du": "jC3H18QKDd/upData/Du",
+                  "dn": "jC3H18QKDd/upData/Dn"}
+PATHDICT_XG_GN_03 = {"de": "cTL0s87N1g/upData/De", "du": "cTL0s87N1g/upData/Du",
+                  "dn": "cTL0s87N1g/upData/Dn"}
+PATHDICT_XG_GN_04 = {"de": "3VQKbE5f3o/upData/De", "du": "3VQKbE5f3o/upData/Du",
+                  "dn": "3VQKbE5f3o/upData/Dn"}
+PATHDICT=[PATHDICT_JK,PATHDICT_HYGD,PATHDICT_XG_GN_01,PATHDICT_XG_GN_02,PATHDICT_XG_GN_03,PATHDICT_XG_GN_04]
+Shujuku_name=['地研院_基坑gnss_data','地研院_航油管道滑坡gnss_data','地研院_武隆效果监测gnss_01_data','地研院_武隆效果监测gnss_02_data'
+              ,'地研院_武隆效果监测gnss_03_data','地研院_武隆效果监测gnss_04_data']
+# 登录
+def login():
+    url = "https://www.znyjc.com/api/login"
+    data = {"username":USERNAME,"password":PASSWORD,"_method":_METHOD,"_ApplicationId":_ApplicationId,"_ClientVersion":_ClientVersion,"_InstallationId":_InstallationId}
+    rsp = requests.post(url=url, data=data)
+    data = rsp.json()
+    # 获取token
+    token = data["sessionToken"]
+    return token
+
+# 获取数据
+def getdata(reqpath, token):
+    url = "https://www.znyjc.com/api/functions/getLast"
+    data = {"id":reqpath,"_ApplicationId":_ApplicationId,"_ClientVersion":_ClientVersion,"_InstallationId":_InstallationId,"_SessionToken":token}
+    rsp = requests.post(url=url, data=data)
+    data = rsp.json()
+    return data
+
+# iso时间转本地时间
+def iso_to_local(isotime):
+    dateObject = dateutil.parser.isoparse(isotime)
+    localdt = dateObject.replace(tzinfo=timezone.utc).astimezone(tz=None)
+    return localdt.strftime('%Y-%m-%d %H:%M:%S')
+
+def savedata(type, value, time):
+    # 连接数据库
+    db = pymysql.connect("hellopsm.mysql.rds.aliyuncs.com", "gowo", "PSMpsm0742053049", "craw")
+    # 使用cursor()方法创建一个游标对象
+    cursor = db.cursor()
+    # 使用execute()方法执行SQL语句
+    if i==0:
+        sql = """
+    insert
+        into
+        地研院_基坑gnss_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_基坑gnss_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==1:
+        sql = """
+    insert
+        into
+        地研院_航油管道滑坡gnss_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_航油管道滑坡gnss_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==2:
+        sql = """
+    insert
+        into
+        地研院_武隆效果监测gnss_01_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_武隆效果监测gnss_01_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==3:
+        sql = """
+    insert
+        into
+        地研院_武隆效果监测gnss_02_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_武隆效果监测gnss_02_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==4:
+        sql = """
+    insert
+        into
+        地研院_武隆效果监测gnss_03_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_武隆效果监测gnss_03_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==5:
+        sql = """
+    insert
+        into
+        地研院_武隆效果监测gnss_04_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_武隆效果监测gnss_04_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    values = (type, value, time, type, value, time)
+    cursor.execute(sql, values)
+    db.commit()
+    # 关闭游标和数据库的连接
+    cursor.close()
+    db.close()
+
+# 定义job函数
+def job(msg):
+    global i
+    token = login()
+    for i in range(len(Shujuku_name)):
+        print("执行%s数据采集过程……"%Shujuku_name[i])
+        for key in PATHDICT[i]:
+            data = getdata(PATHDICT[i][key], token)
+            value = data["result"][0]["value"] # 参数值
+            time = iso_to_local(data["result"][0]["time"]["iso"]) # 保存时间
+            savedata(key, value, time) # 入库
+        print('数据采集成功！')
+
+if __name__ == '__main__':
+    # 间隔20s执行一次爬虫任务
+    schedule.every(40).seconds.do(job, msg='')
+    while True:
+        # 运行所有可以运行的任务
+        schedule.run_pending()
+        time.sleep(1)
+
+
+————————————————————————————————————————————————
+import time
+from datetime import timezone
+import dateutil.parser
+import pymysql
+import requests
+import schedule as schedule
+
+
+USERNAME = "wlsjw"
+PASSWORD = "123456"
+_METHOD = "GET"
+_ApplicationId = "rLF3cmHizI"
+_ClientVersion = "js2.7.1"
+_InstallationId = "a001860c-e8b8-7316-8a4a-a4a920627b75"
+PATHDICT_GN_01 = {"de":"yEFMfUM4Pd/upData/De", "du":"yEFMfUM4Pd/upData/Du",
+            "dn":"yEFMfUM4Pd/upData/Dn"}
+PATHDICT_GN_02 = {"de":"blLCkQ3Gdj/upData/De", "du":"blLCkQ3Gdj/upData/Du",
+            "dn":"blLCkQ3Gdj/upData/Dn"}
+PATHDICT_GN_03 = {"de":"PcY9d9cE2m/upData/De", "du":"PcY9d9cE2m/upData/Du",
+            "dn":"PcY9d9cE2m/upData/Dn"}
+PATHDICT_GN_04 = {"de":"gFslKw1NWA/upData/De", "du":"gFslKw1NWA/upData/Du",
+            "dn":"gFslKw1NWA/upData/Dn"}
+PATHDICT_GN_05 = {"de":"E7ai719GEZ/upData/De", "du":"E7ai719GEZ/upData/Du",
+            "dn":"E7ai719GEZ/upData/Dn"}
+PATHDICT_GN_06 = {"de":"ZDhk3fLJpP/upData/De", "du":"ZDhk3fLJpP/upData/Du",
+            "dn":"ZDhk3fLJpP/upData/Dn"}
+PATHDICT=[PATHDICT_GN_01,PATHDICT_GN_02,PATHDICT_GN_03,PATHDICT_GN_04,PATHDICT_GN_05,PATHDICT_GN_06]
+Shujuku_name=['地研院_水井湾gnss_01_data','地研院_水井湾gnss_02_data','地研院_水井湾gnss_03_data','地研院_水井湾gnss_04_data',
+         '地研院_水井湾gnss_05_data','地研院_水井湾gnss_06_data']
+# 登录
+def login():
+    url = "https://www.znyjc.com/api/login"
+    data = {"username":USERNAME,"password":PASSWORD,"_method":_METHOD,"_ApplicationId":_ApplicationId,"_ClientVersion":_ClientVersion,"_InstallationId":_InstallationId}
+    rsp = requests.post(url=url, data=data)
+    data = rsp.json()
+    # 获取token
+    token = data["sessionToken"]
+    return token
+
+# 获取数据
+def getdata(reqpath, token):
+    url = "https://www.znyjc.com/api/functions/getLast"
+    data = {"id":reqpath,"_ApplicationId":_ApplicationId,"_ClientVersion":_ClientVersion,"_InstallationId":_InstallationId,"_SessionToken":token}
+    rsp = requests.post(url=url, data=data)
+    data = rsp.json()
+    return data
+
+# iso时间转本地时间
+def iso_to_local(isotime):
+    dateObject = dateutil.parser.isoparse(isotime)
+    localdt = dateObject.replace(tzinfo=timezone.utc).astimezone(tz=None)
+    return localdt.strftime('%Y-%m-%d %H:%M:%S')
+
+def savedata(type, value, time):
+    # 连接数据库
+    db = pymysql.connect("hellopsm.mysql.rds.aliyuncs.com", "gowo", "PSMpsm0742053049", "craw")
+    # 使用cursor()方法创建一个游标对象
+    cursor = db.cursor()
+    # 使用execute()方法执行SQL语句
+    if i==0:
+        sql = """
+    insert
+        into
+        地研院_水井湾gnss_01_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_水井湾gnss_01_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==1:
+        sql = """
+    insert
+        into
+        地研院_水井湾gnss_02_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_水井湾gnss_02_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==2:
+        sql = """
+    insert
+        into
+        地研院_水井湾gnss_03_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_水井湾gnss_03_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==3:
+        sql = """
+    insert
+        into
+        地研院_水井湾gnss_04_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_水井湾gnss_04_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i==4:
+        sql = """
+    insert
+        into
+        地研院_水井湾gnss_05_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_水井湾gnss_05_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    if i == 5:
+        sql = """
+    insert
+        into
+        地研院_水井湾gnss_06_data(`type`, `value`, `time`)
+    select
+        %s,
+        %s,
+        %s
+    from
+        dual
+    where
+        not exists(
+        select
+            `type`, `value`, `time`
+        from
+            地研院_水井湾gnss_06_data
+        where
+            type = %s
+            and value = %s
+            and time = %s)
+        """
+    values = (type, value, time, type, value, time)
+    cursor.execute(sql, values)
+    db.commit()
+    # 关闭游标和数据库的连接
+    cursor.close()
+    db.close()
+
+# 定义job函数
+def job(msg):
+    global i
+    token = login()
+    for i in range(len(PATHDICT)):
+        print("执行%s数据采集过程……"%Shujuku_name[i])
+        for key in PATHDICT[i]:
+            data = getdata(PATHDICT[i][key], token)
+            value = data["result"][0]["value"] # 参数值
+            time = iso_to_local(data["result"][0]["time"]["iso"]) # 保存时间
+            savedata(key, value, time) # 入库
+        print('数据采集成功！')
+
+if __name__ == '__main__':
+    # 间隔40s执行一次爬虫任务
+    schedule.every(40).seconds.do(job, msg='')
+    while True:
+        # 运行所有可以运行的任务
+        schedule.run_pending()
+        time.sleep(1)
